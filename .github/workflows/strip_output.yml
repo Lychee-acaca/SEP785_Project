@@ -1,0 +1,29 @@
+name: Strip notebook output
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  strip-output:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+
+      - name: Install nbstripout
+        run: pip install nbstripout
+
+      - name: Strip output from notebooks
+        run: |
+          find . -name "*.ipynb" -not -path "./.ipynb_checkpoints/*" | xargs nbstripout --extra-keys="metadata.kernelspec metadata.language_info"
+
+      - name: Commit and push stripped notebooks
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "strip notebook outputs via CI"
+          file_pattern: '*.ipynb'
